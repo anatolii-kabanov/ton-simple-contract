@@ -2,9 +2,14 @@ import { Cell, StateInit, beginCell, storeStateInit, contractAddress, toNano } f
 import { hex } from '../build/main.compiled.json';
 import qs from 'qs';
 import qrcode from 'qrcode-terminal';
+import { configDotenv } from 'dotenv';
+
+configDotenv();
+
+const TESTNET = process.env.TESTNET === 'true';
 
 async function deployScript() {
-  console.log('Deploy script running...');
+  console.log(`Deploy script running on ${TESTNET ? 'testnet' : 'mainnet'}...`);
 
   const codeCell = Cell.fromBoc(Buffer.from(hex, "hex"))[0];
   const dataCell = new Cell();
@@ -25,9 +30,9 @@ async function deployScript() {
 
   console.log('Address created: ', address.toString());
 
-  const link = 'https://test.tonhub.com/transfer/' +
+  const link = `https://${TESTNET ? 'test.' : ''}tonhub.com/transfer/` +
     address.toString({
-      testOnly: true,
+      testOnly: TESTNET,
     }) +
     '?' +
     qs.stringify({
