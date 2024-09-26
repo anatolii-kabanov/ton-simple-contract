@@ -1,4 +1,4 @@
-import { Cell, Address, toNano } from 'ton-core';
+import { Cell, Address, toNano, beginCell } from 'ton-core';
 import { hex } from '../build/main.compiled.json';
 import { Blockchain } from '@ton-community/sandbox';
 import { MainContract } from '../wrappers/main-contract';
@@ -18,7 +18,7 @@ describe('main.fc contract tests', () => {
 
     // 1 ton = 50_000_000 grams
     const msgResult = await mainContract.sendInternalMsg(senderWallet.getSender(), toNano('0.05'));
-
+    
     expect(msgResult.transactions).toHaveTransaction({
       from: senderWallet.address,
       to: mainContract.address,
@@ -28,6 +28,33 @@ describe('main.fc contract tests', () => {
     const data = await mainContract.getData();
 
     expect(data.recent_sender.toString()).toBe(senderWallet.address.toString());
+
+  });
+
+  it("Should get sum", async () => {
+    const codeCell  = Cell.fromBoc(Buffer.from(hex, 'hex'))[0];
+
+    const blockchain = await Blockchain.create();
+
+    const mainContract = blockchain.openContract(
+      await MainContract.createFromConfig({}, codeCell)
+    );
+
+    const senderWallet = await blockchain.treasury('sender');
+    const value = toNano('0.05');
+    const bValue = value;
+    // 1 ton = 50_000_000 grams
+    const msgResult = await mainContract.sendInternalMsg(senderWallet.getSender(), value, beginCell().storeUint(bValue, 32).endCell());
+
+    expect(msgResult.transactions).toHaveTransaction({
+      from: senderWallet.address,
+      to: mainContract.address,
+      success: true,
+    });
+
+    const data = await mainContract.getSum();
+
+    expect(data.sum).toBe(bValue);
 
   });
 
