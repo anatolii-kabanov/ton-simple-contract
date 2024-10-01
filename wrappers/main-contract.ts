@@ -31,6 +31,18 @@ export class MainContract implements Contract {
     return new MainContract(address, init);
   }
 
+  async sendDeploy(
+    provider: ContractProvider,
+    via: Sender,
+    value: bigint
+  ) {
+    await provider.internal(via, {
+      value,
+      sendMode: SendMode.PAY_GAS_SEPARATELY,
+      body: beginCell().storeUint(2, 32).endCell(),
+    });
+  }
+
   async sendInternalMsg(
     provider: ContractProvider,
     sender: Sender,
@@ -101,6 +113,24 @@ export class MainContract implements Contract {
   ) {
     const body = beginCell()
       .storeUint(3, 32)
+      .storeCoins(amount)
+      .endCell();
+
+    await provider.internal(sender, {
+      value,
+      sendMode: SendMode.PAY_GAS_SEPARATELY,
+      body: body,
+    });
+  }
+
+  async sendWithdrawDestroyRequest(
+    provider: ContractProvider,
+    sender: Sender,
+    value: bigint,
+    amount: bigint,
+  ) {
+    const body = beginCell()
+      .storeUint(4, 32)
       .storeCoins(amount)
       .endCell();
 

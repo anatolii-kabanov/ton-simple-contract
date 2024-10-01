@@ -1,49 +1,29 @@
-import { Cell, StateInit, beginCell, storeStateInit, contractAddress, toNano } from 'ton-core';
+import { Cell, StateInit, beginCell, storeStateInit, contractAddress, toNano, address } from 'ton-core';
 import { hex } from '../build/main.compiled.json';
 import qs from 'qs';
 import qrcode from 'qrcode-terminal';
 import { configDotenv } from 'dotenv';
+import { compile, NetworkProvider } from '@ton-community/blueprint';
+import { MainContract } from '../wrappers/main-contract';
 
-configDotenv();
+export async function run(provider: NetworkProvider) {
+  console.log('Deploying contract...');
+  console.log('Compile main contract...');
+  const codeCell = await compile('main-contract');
 
-const TESTNET = process.env.TESTNET === 'true';
+  const myContract =  MainContract.createFromConfig(
+    {
+      number: 0,
+      address: address('kQALX8dqKfDc-Le_qzhfrUrBxLJhW-ri3VLmJZUfLoLcofL9'),
+      owner_address: address('kQALX8dqKfDc-Le_qzhfrUrBxLJhW-ri3VLmJZUfLoLcofL9')
+    },
+    codeCell
+  );
+  // EQD9QfsH9QUw9ZvhsxGz5SzbLbS1knQB6Dv-duBbYGSKMjzE - contract
+  const openedContract = provider.open(myContract);
 
-async function deployScript() {
-  console.log(`Deploy script running on ${TESTNET ? 'testnet' : 'mainnet'}...`);
+  console.log('Send deploy...');
+  openedContract.sendDeploy(provider.sender(), toNano(0.05));
 
-  const codeCell = Cell.fromBoc(Buffer.from(hex, "hex"))[0];
-  const dataCell = new Cell();
-
-  const stateInit: StateInit = {
-    code: codeCell,
-    data: dataCell,
-  };
-
-  const stateInitBuilder = beginCell();
-  storeStateInit(stateInit)(stateInitBuilder);
-  const stateInitCell = stateInitBuilder.endCell();
-
-  const address = contractAddress(0, {
-    code: codeCell,
-    data: dataCell,
-  });
-
-  console.log('Address created: ', address.toString());
-
-  const link = `https://${TESTNET ? 'test.' : ''}tonhub.com/transfer/` +
-    address.toString({
-      testOnly: TESTNET,
-    }) +
-    '?' +
-    qs.stringify({
-      text: 'Deploy contract',
-      amount: toNano(1).toString(10),
-      init: stateInitCell.toBoc({ idx: false }).toString('base64'),
-    });
-  
-  qrcode.generate(link, { small: true, }, (qrc) => {
-    console.log(`QR code: `, qrc);
-  });
+  await provider.waitForDeploy(myContract.address);
 }
-
-deployScript();
