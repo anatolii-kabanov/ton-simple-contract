@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useTonClient } from './ton-client';
-import { Address, OpenedContract } from 'ton-core';
+import { Address, OpenedContract, toNano } from 'ton-core';
 import { useAsyncInit } from './async-init';
 import { MainContract } from '../contracts/main-contract';
+import { useTonConnect } from './ton-connect';
 
 export function useMainContract() {
   const client = useTonClient();
+  const { sender } = useTonConnect();
+
+  const sleep = (time: number) => new Promise((resolve) => setTimeout(resolve, time));
+
   const [contractData, setContractData] = useState<null | {
     total_value: number;
     recent_address: Address;
@@ -17,7 +22,7 @@ export function useMainContract() {
   const mainContract = useAsyncInit(async () => {
     if (!client) return;
 
-    const contract = new MainContract(Address.parse('EQB7cxKKlTKAWG9Z7E2yRrw75exZcd8Z1H_4nWN1MaHTWL4m'));
+    const contract = new MainContract(Address.parse('EQBOYhMUBrclAHU0rDQsUhDDQz9PRsu6bnMHFHrMwEUb1w_E'));
 
     return client.open(contract) as OpenedContract<MainContract>;
   }, [client]);
@@ -34,6 +39,8 @@ export function useMainContract() {
       });
       const { balance } = await mainContract.getBalance();
       setBalance(balance);
+      await sleep(5 * 1000); // 5 seconds sleep
+      getData();
     };
     getData();
   }, [mainContract]);
@@ -41,6 +48,15 @@ export function useMainContract() {
   return {
     contract_address: mainContract?.address?.toString(),
     contract_balance: balance,
-    ...contractData
+    ...contractData,
+    sendValue: async () => {
+      return mainContract?.sendBodyValue(sender, toNano(0.05), 10);
+    },
+    sendDeposit: async () => {
+      return mainContract?.sendDeposit(sender, toNano(0.06));
+    },
+    sendWithdraw: async () => {
+      return mainContract?.sendWithdrawRequest(sender, toNano(0.05), toNano(0.05));
+    }
   }
 }

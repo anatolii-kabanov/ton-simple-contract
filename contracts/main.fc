@@ -75,7 +75,7 @@ const const::min_tons_for_storage = 10000000; ;; 0.01 TON
     send_raw_message(msg, msg_mode);
   }
 
-  throw(777);
+  throw(200);
 }
 
 (int, slice, slice) get_contract_storage_data() method_id {

@@ -10,12 +10,12 @@ export async function run(provider: NetworkProvider) {
   console.log('Deploying contract...');
   console.log('Compile main contract...');
   const codeCell = await compile('main-contract');
-
+//0QALX8dqKfDc-Le_qzhfrUrBxLJhW-ri3VLmJZUfLoLcoa84
   const myContract =  MainContract.createFromConfig(
     {
       number: 0,
-      address: address('kQALX8dqKfDc-Le_qzhfrUrBxLJhW-ri3VLmJZUfLoLcofL9'),
-      owner_address: address('kQALX8dqKfDc-Le_qzhfrUrBxLJhW-ri3VLmJZUfLoLcofL9')
+      address: address('0QALX8dqKfDc-Le_qzhfrUrBxLJhW-ri3VLmJZUfLoLcoa84'),
+      owner_address: address('0QALX8dqKfDc-Le_qzhfrUrBxLJhW-ri3VLmJZUfLoLcoa84')
     },
     codeCell
   );
@@ -24,6 +24,5 @@ export async function run(provider: NetworkProvider) {
 
   console.log('Send deploy...');
   openedContract.sendDeploy(provider.sender(), toNano(0.05));
-
   await provider.waitForDeploy(myContract.address);
 }
