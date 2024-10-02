@@ -13,7 +13,7 @@ jobs:
       run:
         working-directory: ui
     steps:
-      - name: Checkout Repo
+      - name: Checkout repo
         uses: actions/checkout@v2
 
       - name: Setup Node
@@ -22,7 +22,7 @@ jobs:
           node-version: 22
       
       - name: Install dependencies
-        uses: bahmutov/npm-install@v1
+        run: npm install
 
       - name: Build project
         run: npm run build
