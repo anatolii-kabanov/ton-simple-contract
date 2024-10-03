@@ -3,6 +3,7 @@ import { TonConnectButton } from '@tonconnect/ui-react';
 import { useMainContract } from './hooks/main-contract';
 import { useTonConnect } from './hooks/ton-connect';
 import { fromNano } from 'ton-core';
+import WebApp from '@twa-dev/sdk';
 
 // EQB7cxKKlTKAWG9Z7E2yRrw75exZcd8Z1H_4nWN1MaHTWL4m
 
@@ -13,12 +14,19 @@ function App() {
 
   const { connected } = useTonConnect();
 
+  const showAlert = () => {
+    WebApp.showAlert('Hello, you are on the right way!');
+  }
+
   return (
     <div className='app'>
       <div>
         <TonConnectButton />
       </div>
       <div>
+        <div>
+          <b>{WebApp.platform}</b>
+        </div>
         <div>
           <b>Contract Address: </b>
           <div>{contract_address}</div>
@@ -33,7 +41,11 @@ function App() {
           <b>Total value: </b>
           <div>{total_value ?? 'Loading...'}</div>
         </div>
-        {connected && <button onClick={sendValue}>Send 10</button>}
+        <br/>
+        {connected && <button onClick={() => {
+          showAlert();
+          sendValue();
+        }}>Send 10</button>}
         {connected && <button onClick={sendDeposit}>Deposit 0.06 TON</button>}
         {connected && <button onClick={sendWithdraw}>Withdraw 0.05 TON</button>}
       </div>
